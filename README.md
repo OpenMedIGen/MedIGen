@@ -1,7 +1,7 @@
 <p align="center">
   <img src="logo.png" width="400"><br>
-  <b>Unified image+text generation benchmark</b><br>
-  1,000 questions · 8 tasks<br><br>
+  <b>Advancing Reliable Medical Illustration Generation via Interleaved Introspective Reasoning</b><br>
+  Text-to-image generation · Reasoning · Benchmark · Dataset<br><br>
   <a href="https://arxiv.org/abs/2601.22155"><img src="https://img.shields.io/badge/arXiv-2601.22155-b31b1b.svg"></a>
   <a href="https://huggingface.co/datasets/zlab-princeton/UEval"><img src="https://img.shields.io/badge/🤗%20Dataset-IlluGenBench-yellow"></a>
   <a href="https://zlab-princeton.github.io/UEval/"><img src="https://img.shields.io/badge/Project-Page-blue"></a>
