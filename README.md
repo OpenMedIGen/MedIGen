@@ -41,7 +41,7 @@ python eval_rubric.py
        --model_name janus-pro-7b
 
 # Calculate the IlluGenBench Score
-python cal_rubric.py
+python cal_score.py
 ```
 
 ### Results
