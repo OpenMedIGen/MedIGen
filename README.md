@@ -4,7 +4,7 @@
   <br>
   <br>
   <a href="https://arxiv.org/abs/2601.22155"><img src="https://img.shields.io/badge/arXiv-2601.22155-b31b1b.svg"></a>
-  <a href="https://huggingface.co/datasets/zlab-princeton/UEval"><img src="https://img.shields.io/badge/🤗%20Benchmark-IlluGenBench-yellow"></a>
+  <a href="https://huggingface.co/datasets/FreedomIntelligence/IlluGenBench"><img src="https://img.shields.io/badge/🤗%20Benchmark-IlluGenBench-yellow"></a>
   <a href="https://zlab-princeton.github.io/UEval/"><img src="https://img.shields.io/badge/Project-Page-blue"></a>
 </p>
 
