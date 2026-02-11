@@ -3,7 +3,7 @@
   <b>Unified image+text generation benchmark</b><br>
   1,000 questions · 8 tasks<br><br>
   <a href="https://arxiv.org/abs/2601.22155"><img src="https://img.shields.io/badge/arXiv-2601.22155-b31b1b.svg"></a>
-  <a href="https://huggingface.co/datasets/zlab-princeton/UEval"><img src="https://img.shields.io/badge/🤗%20Dataset-UEval-yellow"></a>
+  <a href="https://huggingface.co/datasets/zlab-princeton/UEval"><img src="https://img.shields.io/badge/🤗%20Dataset-IlluGenBench-yellow"></a>
   <a href="https://zlab-princeton.github.io/UEval/"><img src="https://img.shields.io/badge/Project-Page-blue"></a>
 </p>
 
@@ -23,166 +23,14 @@ cd UEval
 pip install -r requirements.txt
 ```
 
-## Quick Start
-
-```bash
-# Set API key
-export GEMINI_API_KEY="your-api-key-here"
-
-# Run evaluation
-python ueval_eval.py \
-  --model_output_path path/to/your_model_outputs.json \
-  --output_path results/your_model_results.json
-```
-
-## Generating Model Outputs
-
-### Using Gemini API
-
-We provide `generate_outputs/gemini.py` for generating multimodal outputs (both text and images) using Google's Gemini API.
-
-#### Prerequisites
-
-Set up your Gemini API key:
-```bash
-export GEMINI_API_KEY="your-api-key-here"
-```
-
-#### Generate Outputs
-
-Basic usage:
-```bash
-python generate_outputs/gemini.py \
-  --output_path results/gemini_outputs.json \
-  --output_image_dir results/images/ \
-  --api_key YOUR_API_KEY
-```
-
-#### Advanced Options
-
-```bash
-# Generate for specific domains
-python generate_outputs/gemini.py \
-  --output_path results/gemini_outputs.json \
-  --output_image_dir results/images/ \
-  --domains art life tech
-
-# Limit number of items for testing
-python generate_outputs/gemini.py \
-  --output_path results/test.json \
-  --output_image_dir results/images/ \
-  --limit 10
-
-# Use specific Gemini model
-python generate_outputs/gemini.py \
-  --output_path results/gemini_outputs.json \
-  --output_image_dir results/images/ \
-  --model gemini-2.5-flash-image
-```
-
-**Key Arguments:**
-- `--api_key`: Gemini API key (or set `GEMINI_API_KEY` environment variable)
-- `--output_path`: Path to save output JSON file (required)
-- `--output_image_dir`: Directory to save generated images (required)
-- `--hf_dataset`: HuggingFace dataset ID (default: `primerL/UEval-all`)
-- `--domains`: Filter by specific task types (e.g., `art`, `life`, `tech`, `exercise`, `space`, `textbook`, `diagram`, `paper`)
-- `--model`: Gemini model name (default: `gemini-2.5-flash-image`)
-- `--limit`: Number of items to process (default: all)
-- `--checkpoint_interval`: Save checkpoint every N items (default: 1)
-- `--retry_delay`: Seconds between retry attempts (default: 3.0)
-- `--max_attempts`: Maximum retry attempts per prompt (default: 100)
-
-#### Output Format
-
-Generated outputs are saved in JSON format compatible with the evaluation script:
-```json
-[
-  {
-    "id": 1,
-    "prompt": "Your prompt here...",
-    "task_type": "art",
-    "question_type": "open",
-    "gemini_image_ans": ["results/images/1_1.png"],
-    "gemini_text_ans": "Generated text response..."
-  },
-  ...
-]
-```
-
-### Using Emu3.5
-
-We adapted [Emu3.5's official implementation](https://github.com/baaivision/Emu3.5) to work with the UEval benchmark by adding two adapter files: `ueval_inference_vllm.py` and `vis_proto_ueval.py`.
-
-#### Prerequisites
-
-1. Follow the [official Emu3.5 setup instructions](https://github.com/baaivision/Emu3.5) to configure the environment and download model weights.
-
-2. Ensure you have the required dependencies installed as specified in the Emu3.5 repository.
-
-#### Generate Outputs
-
-**Step 1: Run inference to generate protobuf outputs**
-
-```bash
-cd generate_outputs/Emu3.5
-python ueval_inference_vllm.py \
-  --cfg configs/example_config_visual_guidance.py \
-  --dataset-name primerL/UEval-all \
-```
-
-This will generate protobuf (`.pb`) files containing the raw model outputs.
-
-**Step 2: Visualize and convert protobuf outputs to evaluation format**
-
-```bash
-python src/utils/vis_proto_ueval.py \
-  --proto-dir outputs/proto \
-  --image-dir images \
-  --output-json emu3.5_results.json
-```
-
-This converts the protobuf files into JSON format compatible with the UEval evaluation script.
-
-**Key Arguments for inference:**
-- `--cfg`: Path to Emu3.5 configuration file (required)
-- `--dataset-name`: HuggingFace dataset ID (default: `primerL/UEval-all`)
-- `--dataset-split`: Specific split to process (e.g., `art`, `life`, etc.)
-- `--tensor-parallel-size`: Number of GPUs for tensor parallelism (default: 4)
-- `--gpu-memory-utilization`: GPU memory utilization ratio (default: 0.7)
-
-**Key Arguments for visualization:**
-- `--proto-dir`: Directory containing `.pb` files (required)
-- `--image-dir`: Directory to save extracted images (required)
-- `--output-json`: Path to save output JSON file (required)
-- `--relative-root`: Base directory for computing relative image paths (default: `.`)
-
-#### Output Format
-
-The final JSON output will have the following format:
-```json
-[
-  {
-    "id": "1",
-    "emu_image": ["clip_00_00.png", ...],
-    "emu_text": "Generated text response with chain-of-thought..."
-  },
-  ...
-]
-```
-
 ## Evaluation
 
 
 ### Results
 
-We evaluate recent unified models on all 8 tasks in our benchmark. Overall, frontier models consistently outperform open-source ones across all tasks: GPT-5-Thinking achieves the highest average score of 66.4, while the best open-source model obtains only 49.1.
+We evaluate recent text-to-image generation models on IlluGenBench. Overall, commercial models consistently outperform open-source ones across all tasks: Gemini-3-Pro-Image achieves the highest average score of 0.873.
 
 <table>
-<caption>
-<strong>Performance comparison of different T2I generation models on IlluGenBench.</strong><br>
-<strong>Bold</strong> indicates the best performance. <u>Underlined</u> indicates the second-best performance.<br>
-Commercial models are shown in gray for reference only due to undisclosed details. <em>B</em> indicates billion, and <em>A</em> indicates activated parameters.
-</caption>
 <thead>
 <tr>
 <th><strong>Model</strong></th>
@@ -450,7 +298,7 @@ Commercial models are shown in gray for reference only due to undisclosed detail
 
 
 
-<img width="1368" height="1417" alt="Image" src="https://github.com/OpenMedIGen/MedIGen/assets/images/case.png" />
+<img width="1368" height="1417" alt="Image" src="https://github.com/OpenMedIGen/MedIGen/blob/main/assets/images/case.png" />
 
 ## Our Series of Works
 
