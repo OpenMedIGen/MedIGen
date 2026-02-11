@@ -8,24 +8,19 @@
   <a href="https://zlab-princeton.github.io/UEval/"><img src="https://img.shields.io/badge/Project-Page-blue"></a>
 </p>
 
-**UEval** is a benchmark for evaluating unified models capable of generating both images and text.
+Medical illustrations require high scientific accuracy and structural correctness. However, existing text-to-image (T2I) models typically rely on one-pass generation, producing outputs that are visually plausible yet anatomically incorrect. To address this challenge, we introduce **MedIGen**, which enables the collaborative co-evolution of visual understanding and generation, advancing medical illustration generation into an **interleaved introspective reasoning** process. We introduce a progressive three-stage training pipeline: large-scale medical illustration pretraining on 1.21M samples for domain alignment, mixture training to decompose and activate three introspective sub-skills, and reinforcement learning with dual-level rewards to jointly optimize reasoning validity and generation correctness. Additionally, we propose **IlluGenBench**, the first expert-aligned and rubric-driven benchmark for medical illustration evaluation, comprising 296 diverse tasks, which assesses scientific accuracy, structural correctness, and semantic alignment rather than visual quality and aesthetic appeal. Extensive experiments show that MedIGen significantly outperforms baseline models, advancing medical illustration generation from surface-level imitation toward reliable generations via introspective reasoning. **All resources will be open-sourced to advance research.**
 
-<br>
+##### Release Progress
 
-<p align="center">
-<img src="https://github.com/user-attachments/assets/f66379a8-c571-4cba-8e9b-78d158ecd26c" width="70%">
-</p>
+- [ ] Paper
+- [ ] PT (*1.21M*)/SFT (*150K*) Data
+- [ ] MedIGen Model Weights
+- [ ] Training Code
+- [ ] Evaluation Code and IlluGenBench
 
-## Installation
+## IlluGenBench
 
-```bash
-git clone https://github.com/zlab-princeton/UEval.git
-cd UEval
-pip install -r requirements.txt
-```
-
-## Evaluation
-
+### Evaluation
 
 ### Results
 
