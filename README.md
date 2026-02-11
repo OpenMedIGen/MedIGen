@@ -1,1 +1,467 @@
-# MedIGen
+<p align="center">
+  <img src="logo.png" width="400"><br>
+  <b>Unified image+text generation benchmark</b><br>
+  1,000 questions · 8 tasks<br><br>
+  <a href="https://arxiv.org/abs/2601.22155"><img src="https://img.shields.io/badge/arXiv-2601.22155-b31b1b.svg"></a>
+  <a href="https://huggingface.co/datasets/zlab-princeton/UEval"><img src="https://img.shields.io/badge/🤗%20Dataset-UEval-yellow"></a>
+  <a href="https://zlab-princeton.github.io/UEval/"><img src="https://img.shields.io/badge/Project-Page-blue"></a>
+</p>
+
+**UEval** is a benchmark for evaluating unified models capable of generating both images and text.
+
+<br>
+
+<p align="center">
+<img src="https://github.com/user-attachments/assets/f66379a8-c571-4cba-8e9b-78d158ecd26c" width="70%">
+</p>
+
+## Installation
+
+```bash
+git clone https://github.com/zlab-princeton/UEval.git
+cd UEval
+pip install -r requirements.txt
+```
+
+## Quick Start
+
+```bash
+# Set API key
+export GEMINI_API_KEY="your-api-key-here"
+
+# Run evaluation
+python ueval_eval.py \
+  --model_output_path path/to/your_model_outputs.json \
+  --output_path results/your_model_results.json
+```
+
+## Generating Model Outputs
+
+### Using Gemini API
+
+We provide `generate_outputs/gemini.py` for generating multimodal outputs (both text and images) using Google's Gemini API.
+
+#### Prerequisites
+
+Set up your Gemini API key:
+```bash
+export GEMINI_API_KEY="your-api-key-here"
+```
+
+#### Generate Outputs
+
+Basic usage:
+```bash
+python generate_outputs/gemini.py \
+  --output_path results/gemini_outputs.json \
+  --output_image_dir results/images/ \
+  --api_key YOUR_API_KEY
+```
+
+#### Advanced Options
+
+```bash
+# Generate for specific domains
+python generate_outputs/gemini.py \
+  --output_path results/gemini_outputs.json \
+  --output_image_dir results/images/ \
+  --domains art life tech
+
+# Limit number of items for testing
+python generate_outputs/gemini.py \
+  --output_path results/test.json \
+  --output_image_dir results/images/ \
+  --limit 10
+
+# Use specific Gemini model
+python generate_outputs/gemini.py \
+  --output_path results/gemini_outputs.json \
+  --output_image_dir results/images/ \
+  --model gemini-2.5-flash-image
+```
+
+**Key Arguments:**
+- `--api_key`: Gemini API key (or set `GEMINI_API_KEY` environment variable)
+- `--output_path`: Path to save output JSON file (required)
+- `--output_image_dir`: Directory to save generated images (required)
+- `--hf_dataset`: HuggingFace dataset ID (default: `primerL/UEval-all`)
+- `--domains`: Filter by specific task types (e.g., `art`, `life`, `tech`, `exercise`, `space`, `textbook`, `diagram`, `paper`)
+- `--model`: Gemini model name (default: `gemini-2.5-flash-image`)
+- `--limit`: Number of items to process (default: all)
+- `--checkpoint_interval`: Save checkpoint every N items (default: 1)
+- `--retry_delay`: Seconds between retry attempts (default: 3.0)
+- `--max_attempts`: Maximum retry attempts per prompt (default: 100)
+
+#### Output Format
+
+Generated outputs are saved in JSON format compatible with the evaluation script:
+```json
+[
+  {
+    "id": 1,
+    "prompt": "Your prompt here...",
+    "task_type": "art",
+    "question_type": "open",
+    "gemini_image_ans": ["results/images/1_1.png"],
+    "gemini_text_ans": "Generated text response..."
+  },
+  ...
+]
+```
+
+### Using Emu3.5
+
+We adapted [Emu3.5's official implementation](https://github.com/baaivision/Emu3.5) to work with the UEval benchmark by adding two adapter files: `ueval_inference_vllm.py` and `vis_proto_ueval.py`.
+
+#### Prerequisites
+
+1. Follow the [official Emu3.5 setup instructions](https://github.com/baaivision/Emu3.5) to configure the environment and download model weights.
+
+2. Ensure you have the required dependencies installed as specified in the Emu3.5 repository.
+
+#### Generate Outputs
+
+**Step 1: Run inference to generate protobuf outputs**
+
+```bash
+cd generate_outputs/Emu3.5
+python ueval_inference_vllm.py \
+  --cfg configs/example_config_visual_guidance.py \
+  --dataset-name primerL/UEval-all \
+```
+
+This will generate protobuf (`.pb`) files containing the raw model outputs.
+
+**Step 2: Visualize and convert protobuf outputs to evaluation format**
+
+```bash
+python src/utils/vis_proto_ueval.py \
+  --proto-dir outputs/proto \
+  --image-dir images \
+  --output-json emu3.5_results.json
+```
+
+This converts the protobuf files into JSON format compatible with the UEval evaluation script.
+
+**Key Arguments for inference:**
+- `--cfg`: Path to Emu3.5 configuration file (required)
+- `--dataset-name`: HuggingFace dataset ID (default: `primerL/UEval-all`)
+- `--dataset-split`: Specific split to process (e.g., `art`, `life`, etc.)
+- `--tensor-parallel-size`: Number of GPUs for tensor parallelism (default: 4)
+- `--gpu-memory-utilization`: GPU memory utilization ratio (default: 0.7)
+
+**Key Arguments for visualization:**
+- `--proto-dir`: Directory containing `.pb` files (required)
+- `--image-dir`: Directory to save extracted images (required)
+- `--output-json`: Path to save output JSON file (required)
+- `--relative-root`: Base directory for computing relative image paths (default: `.`)
+
+#### Output Format
+
+The final JSON output will have the following format:
+```json
+[
+  {
+    "id": "1",
+    "emu_image": ["clip_00_00.png", ...],
+    "emu_text": "Generated text response with chain-of-thought..."
+  },
+  ...
+]
+```
+
+## Evaluation
+
+
+### Results
+
+We evaluate recent unified models on all 8 tasks in our benchmark. Overall, frontier models consistently outperform open-source ones across all tasks: GPT-5-Thinking achieves the highest average score of 66.4, while the best open-source model obtains only 49.1.
+
+<table>
+<caption>
+<strong>Performance comparison of different T2I generation models on IlluGenBench.</strong><br>
+<strong>Bold</strong> indicates the best performance. <u>Underlined</u> indicates the second-best performance.<br>
+Commercial models are shown in gray for reference only due to undisclosed details. <em>B</em> indicates billion, and <em>A</em> indicates activated parameters.
+</caption>
+<thead>
+<tr>
+<th><strong>Model</strong></th>
+<th><strong>Parameters</strong></th>
+<th><strong>Scientific Accuracy↑</strong></th>
+<th><strong>Structural Correctness↑</strong></th>
+<th><strong>Semantic Alignment↑</strong></th>
+<th style="background-color: #DEF;">Average↑</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr style="background-color: #f0f0f0; color: #666;">
+<td colspan="6"><strong>Commercial T2I Generation Models (Reference Only)</strong></td>
+</tr>
+<tr style="background-color: #f0f0f0; color: #666;">
+<td>GPT-Image-1</td>
+<td>×</td>
+<td>0.843</td>
+<td>0.812</td>
+<td>0.847</td>
+<td>0.835</td>
+</tr>
+<tr style="background-color: #f0f0f0; color: #666;">
+<td>GPT-Image-1.5</td>
+<td>×</td>
+<td>0.849</td>
+<td>0.811</td>
+<td>0.852</td>
+<td>0.838</td>
+</tr>
+<tr style="background-color: #f0f0f0; color: #666;">
+<td>Gemini-2.5-Flash-Image</td>
+<td>×</td>
+<td>0.733</td>
+<td>0.676</td>
+<td>0.789</td>
+<td>0.734</td>
+</tr>
+<tr style="background-color: #f0f0f0; color: #666;">
+<td>Gemini-3-Pro-Image</td>
+<td>×</td>
+<td>0.879</td>
+<td>0.849</td>
+<td>0.890</td>
+<td>0.873</td>
+</tr>
+<tr style="background-color: #f0f0f0; color: #666;">
+<td>Seedream-4.5</td>
+<td>×</td>
+<td>0.787</td>
+<td>0.692</td>
+<td>0.825</td>
+<td>0.769</td>
+</tr>
+<tr style="background-color: #f0f0f0; color: #666;">
+<td>Kling-Image-v2.1</td>
+<td>×</td>
+<td>0.173</td>
+<td>0.129</td>
+<td>0.272</td>
+<td>0.190</td>
+</tr>
+
+<tr>
+<td colspan="6"><strong>Open-Source T2I Generation Models</strong></td>
+</tr>
+<tr>
+<td>SDXL</td>
+<td>3.5B</td>
+<td>0.103</td>
+<td>0.061</td>
+<td>0.170</td>
+<td>0.111</td>
+</tr>
+<tr>
+<td>Playground-v2.5</td>
+<td>3.5B</td>
+<td>0.063</td>
+<td>0.043</td>
+<td>0.147</td>
+<td>0.083</td>
+</tr>
+<tr>
+<td>FLUX.1-dev</td>
+<td>12B</td>
+<td>0.375</td>
+<td>0.324</td>
+<td>0.476</td>
+<td>0.391</td>
+</tr>
+<tr>
+<td>Stable-Diffusion-3.5</td>
+<td>8.1B</td>
+<td>0.220</td>
+<td>0.152</td>
+<td>0.267</td>
+<td>0.213</td>
+</tr>
+<tr>
+<td>Chroma1-HD</td>
+<td>8.9B</td>
+<td>0.417</td>
+<td>0.332</td>
+<td>0.506</td>
+<td>0.419</td>
+</tr>
+<tr>
+<td>HiDream-I1-Full</td>
+<td>17B</td>
+<td>0.247</td>
+<td>0.212</td>
+<td>0.311</td>
+<td>0.256</td>
+</tr>
+<tr>
+<td>Lumina-Image-2.0</td>
+<td>2.6B</td>
+<td>0.308</td>
+<td>0.239</td>
+<td>0.404</td>
+<td>0.317</td>
+</tr>
+<tr>
+<td>Qwen-Image</td>
+<td>20B</td>
+<td>0.434</td>
+<td>0.344</td>
+<td>0.517</td>
+<td>0.432</td>
+</tr>
+<tr>
+<td>Qwen-Image-2512</td>
+<td>20B</td>
+<td><strong>0.644</strong></td>
+<td><strong>0.565</strong></td>
+<td><u>0.590</u></td>
+<td><u>0.601</u></td>
+</tr>
+
+<tr>
+<td colspan="6"><strong>Unified Understanding and Generation Models</strong></td>
+</tr>
+<tr>
+<td>Janus-Pro-1B</td>
+<td>1B</td>
+<td>0.174</td>
+<td>0.110</td>
+<td>0.370</td>
+<td>0.217</td>
+</tr>
+<tr>
+<td>Janus-Pro-7B</td>
+<td>7B</td>
+<td>0.298</td>
+<td>0.224</td>
+<td>0.463</td>
+<td>0.328</td>
+</tr>
+<tr>
+<td>Janus-4o</td>
+<td>7B</td>
+<td>0.416</td>
+<td>0.318</td>
+<td>0.566</td>
+<td>0.433</td>
+</tr>
+<tr>
+<td>BAGEL</td>
+<td>14B (A7B)</td>
+<td>0.350</td>
+<td>0.301</td>
+<td>0.521</td>
+<td>0.390</td>
+</tr>
+<tr>
+<td>BLIP3o-NEXT</td>
+<td>3B</td>
+<td>0.319</td>
+<td>0.266</td>
+<td>0.445</td>
+<td>0.343</td>
+</tr>
+<tr>
+<td>UniWorld-V1</td>
+<td>19B</td>
+<td>0.265</td>
+<td>0.202</td>
+<td>0.416</td>
+<td>0.294</td>
+</tr>
+<tr>
+<td>Emu3.5</td>
+<td>8B</td>
+<td>0.306</td>
+<td>0.257</td>
+<td>0.470</td>
+<td>0.344</td>
+</tr>
+<tr>
+<td>Show-o2</td>
+<td>7B</td>
+<td>0.244</td>
+<td>0.203</td>
+<td>0.435</td>
+<td>0.273</td>
+</tr>
+<tr>
+<td>GLM-Image</td>
+<td>16B</td>
+<td>0.492</td>
+<td>0.430</td>
+<td>0.552</td>
+<td>0.491</td>
+</tr>
+
+<tr>
+<td colspan="6"><strong>T2I Reasoning Models</strong></td>
+</tr>
+<tr>
+<td>GoT</td>
+<td>6B</td>
+<td>0.287</td>
+<td>0.196</td>
+<td>0.319</td>
+<td>0.262</td>
+</tr>
+<tr>
+<td>Janus-Pro-R1</td>
+<td>7B</td>
+<td>0.014</td>
+<td>0.008</td>
+<td>0.135</td>
+<td>0.052</td>
+</tr>
+<tr>
+<td>Uni-CoT (v0.2)</td>
+<td>14B (A7B)</td>
+<td>0.384</td>
+<td>0.321</td>
+<td>0.506</td>
+<td>0.413</td>
+</tr>
+<tr>
+<td>T2I-R1</td>
+<td>7B</td>
+<td>0.258</td>
+<td>0.186</td>
+<td>0.424</td>
+<td>0.289</td>
+</tr>
+
+<tr>
+<td colspan="6"><strong>Our Models</strong></td>
+</tr>
+<tr style="background-color: #DEF;">
+<td><strong>MedIGen</strong></td>
+<td>7B</td>
+<td><u>0.606</u></td>
+<td><u>0.537</u></td>
+<td>0.711</td>
+<td>0.618</td>
+</tr>
+</tbody>
+</table>
+
+
+
+<img width="1368" height="1417" alt="Image" src="https://github.com/OpenMedIGen/MedIGen/assets/images/case.png" />
+
+## Our Series of Works
+
+Explore our other works:
+
+- [MedGen](https://github.com/FreedomIntelligence/MedGen): a specialized video generation model designed to revolutionize clinical training and surgical simulation by producing medically accurate, high-fidelity visual content that bridges the gap between theoretical education and real-world professional practice.
+- [MicroVerse](https://github.com/FreedomIntelligence/MicroVerse): a model tailored for microscale simulation, enabling the accurate visualization of cellular and molecular processes to support drug discovery, biomedical research, and interactive scientific education.
+
+## Citation
+
+If you find this repository helpful, please consider citing:
+```bibtex
+
+```
