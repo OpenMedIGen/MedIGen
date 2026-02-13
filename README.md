@@ -29,7 +29,7 @@ IlluGenBench consists of **296 medical illustration generation tasks** spanning 
 2. Follow the commands below for evaluation.
 
 ```bash
-git clone https://github.com/OpenMedIGen/MedIGen.git
+git clone https://github.com/FreedomIntelligence/MedIGen.git
 cd eval
 pip install -r requiremnets.txt
 
